@@ -1,5 +1,7 @@
 package com.nrin31266.firebasecruddemo1.component
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,7 +34,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.nrin31266.firebasecruddemo1.util.SharedViewModel
 import com.nrin31266.firebasecruddemo1.util.UserData
+import kotlinx.coroutines.launch
+import kotlin.math.log
 
 @Composable
 fun UserCard(
@@ -41,8 +47,12 @@ fun UserCard(
         "Manager",
         18,
         "https://th.bing.com/th/id/R.2d31b8bc60d9251052a5c2d910a4d15f?rik=00LkgPJjHOoxhw&pid=ImgRaw&r=0"
-    )
+    ),
+    onDelete: (userId: String)-> Unit,
+    sharedViewModel: SharedViewModel
 ) {
+
+    val coroutineScope = rememberCoroutineScope();
 
     Row(
         modifier = Modifier
@@ -95,7 +105,11 @@ fun UserCard(
                         contentDescription = "Edit"
                     )
                 }
-                IconButton(onClick = { /* TODO: Xử lý Delete */ }) {
+                IconButton(onClick = {
+                    Log.d(TAG, "UserCard: On Delete")
+                    onDelete(user.userId)
+
+                }) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
                         contentDescription = "Delete",

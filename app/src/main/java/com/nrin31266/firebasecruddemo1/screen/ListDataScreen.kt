@@ -20,8 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +34,7 @@ import androidx.navigation.NavController
 import com.nrin31266.firebasecruddemo1.component.UserCard
 import com.nrin31266.firebasecruddemo1.util.SharedViewModel
 import com.nrin31266.firebasecruddemo1.util.UserData
+import kotlinx.coroutines.launch
 
 @Composable
 fun ListDataScreen(
@@ -41,12 +44,13 @@ fun ListDataScreen(
 
 
     val context = LocalContext.current
-    var users by remember { mutableStateOf<List<UserData>>(emptyList()) }
+    var users = remember { mutableStateListOf<UserData>() }
     LaunchedEffect(Unit) {
         sharedViewModel.getAllUser(context) { data ->
-            users = data
+            users.addAll(data)
         }
     }
+    val coroutineScope = rememberCoroutineScope();
 
 
     // main layout
@@ -74,9 +78,22 @@ fun ListDataScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp),
 
-        ) {
+            ) {
             users.map { user ->
-                UserCard(user)
+                UserCard(
+                    user = user,
+                    onDelete = { userId ->
+                        run {
+                            coroutineScope.launch {
+                                sharedViewModel.deleteUserData(userId,context, {
+                                    users.remove(user)
+                                })
+
+                            }
+                        }
+                    },
+                    sharedViewModel = sharedViewModel
+                )
             }
         }
 

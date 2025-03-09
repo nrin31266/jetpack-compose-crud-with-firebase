@@ -248,7 +248,9 @@ fun GetDataScreen(
                 Button(
                     onClick = {
 
-                        sharedViewModel.deleteUserData(userId, context, {}, navController)
+                        sharedViewModel.deleteUserData(userId, context, {
+                            navController.popBackStack()
+                        }, )
                     },
                     modifier = Modifier
                         .width(100.dp)

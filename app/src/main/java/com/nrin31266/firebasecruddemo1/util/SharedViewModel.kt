@@ -85,7 +85,6 @@ class SharedViewModel : ViewModel() {
         userId: String,
         context: Context,
         backToMainScreen: () -> Unit,
-        navController: NavController
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val fireStoreRef = Firebase.firestore.collection("user").document(userId)
@@ -93,9 +92,10 @@ class SharedViewModel : ViewModel() {
             try {
                 fireStoreRef.delete().await()
 
-                // Chuyển về Main Thread để navigate
+
                 withContext(Dispatchers.Main) {
-                    navController.popBackStack()
+                    backToMainScreen()
+                    Toast.makeText(context, "Deleted Successfully", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
