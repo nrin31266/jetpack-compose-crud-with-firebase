@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -68,8 +70,10 @@ fun ListDataScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 5.dp, end = 5.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .padding(start = 5.dp, end = 5.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+
         ) {
             users.map { user ->
                 UserCard(user)

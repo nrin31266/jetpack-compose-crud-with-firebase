@@ -1,14 +1,27 @@
 package com.nrin31266.firebasecruddemo1.screen
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.AccountBox
+import androidx.compose.material.icons.sharp.AccountBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,15 +34,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.nrin31266.firebasecruddemo1.util.SharedViewModel
 import com.nrin31266.firebasecruddemo1.util.UserData
+import kotlinx.coroutines.launch
 import kotlin.reflect.typeOf
 
 
@@ -43,8 +62,17 @@ fun AddDataScreen(
     var name: String by remember { mutableStateOf("") }
     var profession: String by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    var context = LocalContext.current
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope();
+
+
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            imageUri = uri
+        }
+
 
     // main layout
 
@@ -64,6 +92,7 @@ fun AddDataScreen(
             }
         }
 
+
         //
         Column(
             modifier = Modifier
@@ -72,6 +101,45 @@ fun AddDataScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Box(
+                    modifier = Modifier
+                        .border(1.dp, Color.Gray, RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(16.dp))
+                        .size(200.dp),
+                        contentAlignment = Alignment.Center
+                ) {
+                    if(imageUri == null){
+                        Icon(
+                            imageVector = Icons.Outlined.AccountBox, contentDescription = "",
+                            modifier = Modifier.size(100.dp)
+                        )
+                    }else{
+                        imageUri?.let {
+                            Image(
+                                painter = rememberAsyncImagePainter(it),
+                                contentDescription = "Selected Image",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+
+                }
+
+
+                Button(onClick = {
+                    launcher.launch("image/*")
+                }) {
+                    Text("Select image")
+                }
+            }
+
             // user ID
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -123,16 +191,31 @@ fun AddDataScreen(
             //save button
             Button(
                 onClick = {
-                    var userData = UserData(
-                        userId = userId,
-                        name = name,
-                        profession = profession,
-                        age = age.toInt()
-                    )
+                    coroutineScope.launch {
+                        var userData = UserData(
+                            userId = userId,
+                            name = name,
+                            profession = profession,
+                            age = age.toInt()
+                        )
+                        if(imageUri!=null){
+                            val url = sharedViewModel.uploadImage(context, imageUri!!)
+                            if(url != null){
+                                userData = userData.copy(imageUrl = url)
+                            }else{
+                                return@launch
+                            }
+                        }
 
-                    sharedViewModel.saveData(userData, context);
+
+
+                        sharedViewModel.saveData(userData, context);
+                    }
+
                 },
-                modifier = Modifier.fillMaxWidth().padding(top = 50.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 50.dp)
             ) {
                 Text("Add")
             }

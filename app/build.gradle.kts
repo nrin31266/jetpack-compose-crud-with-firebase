@@ -65,4 +65,6 @@ dependencies {
     implementation(libs.firebase.storage)
     //navigate
     implementation("androidx.navigation:navigation-compose:2.7.1")
+    //load image for android
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }

@@ -1,16 +1,19 @@
 package com.nrin31266.firebasecruddemo1.util
 
 import android.content.Context
+import android.net.Uri
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 class SharedViewModel : ViewModel() {
     fun saveData(userData: UserData, context: Context) {
@@ -25,6 +28,9 @@ class SharedViewModel : ViewModel() {
                     }
                     return@launch
                 }
+
+                val firebaseStorageRef = FirebaseStorage.getInstance().reference.child("/images/${UUID.randomUUID()}")
+
                 fireStoreRef.set(userData).await()
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Successfully saved data", Toast.LENGTH_SHORT).show()
@@ -118,5 +124,21 @@ class SharedViewModel : ViewModel() {
             }
         }
     }
+
+    suspend fun uploadImage(context: Context, imageUri: Uri): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val storageRef = FirebaseStorage.getInstance().reference.child("images/${UUID.randomUUID()}.jpg")
+                storageRef.putFile(imageUri).await()
+                storageRef.downloadUrl.await().toString()
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Upload failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+                null
+            }
+        }
+    }
+
 
 }
